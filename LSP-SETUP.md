@@ -156,8 +156,13 @@ Claude Code docs rather than trusting this paragraph.
 
 ## 5. Gotchas
 
-- **Version lag.** nixpkgs `intelephense` was 1.18.2 where npm/bun had 1.18.5.
+- **Version lag.** nixpkgs `intelephense` is 1.18.2 where npm/bun ship 1.18.5.
   Patch-level, but if PHP intel regresses this is the first thing to check.
+- **A rustup shim can shadow the flake.** If `~/.cargo/bin` precedes
+  `~/.nix-profile/bin` on PATH, `rust-analyzer` may resolve to a rustup shim.
+  With no matching toolchain component it falls back to the nix binary anyway,
+  but prints `info:` lines while doing so. Name the `~/.nix-profile/bin` path in
+  the config to skip the hop; leave the shim in place.
 - **Don't run two copies.** If a server is also installed via npm/bun/cargo,
   whichever comes first on PATH wins and it may not be the one in your config.
   Check with `command -v <binary>` and remove the loser

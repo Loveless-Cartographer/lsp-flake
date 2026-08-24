@@ -4,6 +4,12 @@
 # otherwise — a working setup must cost nothing.
 set -u
 
+# NIX_LSPS_PREVIEW lets you see the note without uninstalling anything:
+#   missing  — pretend every server is absent, Nix present
+#   no-nix   — pretend Nix is absent too
+# Unset (the normal case) means a real check.
+preview="${NIX_LSPS_PREVIEW:-}"
+
 servers="bash-language-server intelephense jdtls kotlin-language-server nixd
 pyright-langserver rust-analyzer typescript-language-server vue-language-server
 yaml-language-server"
@@ -11,7 +17,7 @@ yaml-language-server"
 missing=""
 present=0
 for b in $servers; do
-    if command -v "$b" >/dev/null 2>&1; then
+    if [ -z "$preview" ] && command -v "$b" >/dev/null 2>&1; then
         present=$((present + 1))
     else
         missing="$missing $b"
@@ -21,7 +27,7 @@ done
 # Everything present: say nothing at all.
 [ -z "$missing" ] && exit 0
 
-if command -v nix >/dev/null 2>&1; then
+if [ "$preview" != "no-nix" ] && command -v nix >/dev/null 2>&1; then
     note="The nix-lsps plugin is installed, but $((10 - present)) of its 10 language servers are not on PATH:$missing
 
 Nix IS installed, so tell the user this and offer to run it for them:

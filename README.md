@@ -148,8 +148,10 @@ same extension.
 
 The official marketplace ships `php-lsp`, `pyright-lsp`, `typescript-lsp`,
 `rust-analyzer-lsp`, `jdtls-lsp`, `kotlin-lsp` and more. `nix-lsps` **replaces**
-those — do not enable both for the same language. Two plugins declaring a server
-for one extension is a conflict, not a merge.
+those — do not enable both for the same language. Overlap is not rejected: two
+plugins declaring a server for the same extension load without any warning, and one
+of them silently wins. Observed directly, with a throwaway plugin claiming an
+extension alongside this one — no conflict message anywhere.
 
 `eslint` is deliberately absent: `vscode-eslint-language-server` wants the same
 `.js`/`.ts` extensions as `typescript-language-server`, and only one server may

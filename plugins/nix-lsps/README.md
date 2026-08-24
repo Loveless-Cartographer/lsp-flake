@@ -49,8 +49,8 @@ something else.
   `.php` only, which is the main reason to prefer this plugin.
 - It **replaces** the official per-language LSP plugins (`php-lsp`, `pyright-lsp`,
   `typescript-lsp`, `rust-analyzer-lsp`, `jdtls-lsp`, `kotlin-lsp`). Do not enable
-  both for one language — two plugins declaring a server for one extension is a
-  conflict, not a merge.
+  both for one language. Overlap is not rejected — both load, one silently wins, and
+  nothing warns you which.
 - `eslint` is absent by design: it wants the same `.js`/`.ts` extensions as
   `typescript-language-server`, and only one server may own an extension.
 - Extension-to-language mapping lives in `.lsp.json`, editable in one place.

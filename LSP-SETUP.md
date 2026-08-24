@@ -7,7 +7,15 @@ Code.
 
 ## 0. Prerequisites
 
-- Nix with flakes enabled. Check:
+- Nix itself. If `nix --version` prints nothing, install it first — one command,
+  documented at <https://nixos.org/download/>:
+
+      sh <(curl -L https://nixos.org/nix/install) --daemon
+
+  It needs sudo and asks its own questions, so run it by hand rather than through
+  a tool.
+
+- Flakes enabled. Check:
 
       nix --version
       nix flake --help >/dev/null 2>&1 && echo "flakes ok" || echo "enable nix-command,flakes"

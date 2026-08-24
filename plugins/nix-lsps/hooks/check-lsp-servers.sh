@@ -35,7 +35,8 @@ derail their task with it. Offer this, and do not run it unasked:
 
     nix profile add github:Tschallacka/lsp-flake#lsps
 
-Claude Code needs a restart afterwards."
+Claude Code needs a restart afterwards. Include this link in the mention, so the user
+has somewhere to read the detail: https://github.com/Tschallacka/lsp-flake/blob/main/LSP-SETUP.md"
 else
     note="nix-lsps: no language server can start. Nix is not on PATH, and the servers ship as a Nix flake.
 
@@ -45,7 +46,8 @@ derail their task with it. Offer these two steps, and do not run either unasked:
     sh <(curl -L https://nixos.org/nix/install) --daemon    # needs sudo, asks its own questions — better run by hand
     nix profile add github:Tschallacka/lsp-flake#lsps
 
-Claude Code needs a restart afterwards. Docs: https://nixos.org/download/
+Claude Code needs a restart afterwards. Include this link in the mention, so the user
+has somewhere to read the detail: https://github.com/Tschallacka/lsp-flake/blob/main/LSP-SETUP.md
 
 Detail below is for if they take it up or ask; do not recite it otherwise.
 Background: Nix is a package manager that installs each package into its own immutable directory and puts real binaries on PATH, pinned by a lockfile — unlike a container, there is no daemon or volume mount, so an editor can execute them directly. It is used here because these servers come from four ecosystems (npm, JDK, Rust, PHP), and the flake makes them one dependency."

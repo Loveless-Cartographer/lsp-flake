@@ -16,17 +16,6 @@ payload="$(cat)"
 path="$(printf '%s' "$payload" | jq -r '.tool_input.filePath // empty' 2>/dev/null)"
 [ -n "$path" ] || exit 0
 
-# Say nothing about a call that worked. A response is present on PostToolUse and
-# absent on PostToolUseFailure; only a response that actually reports a missing
-# server is worth annotating.
-response="$(printf '%s' "$payload" | jq -r 'if has("tool_response") then (.tool_response | tostring) else "" end' 2>/dev/null)"
-if [ -n "$response" ]; then
-    case "$response" in
-        *"No LSP server available"*|*"Failed to start LSP"*|*"Failed to initialize LSP"*) ;;
-        *) exit 0 ;;
-    esac
-fi
-
 # Only the basename may carry the extension: a dot in a directory name
 # (/srv/v1.2/Makefile) must not read as one. Test for the dot before
 # lowercasing, or the comparison never matches.
@@ -36,6 +25,17 @@ case "$base" in
     *) exit 0 ;;
 esac
 ext=".$(printf '%s' "${base##*.}" | tr '[:upper:]' '[:lower:]')"
+
+# No response gate. An earlier version only spoke when the response matched a list
+# of failure strings, and missed the case that matters most: a missing binary fails
+# with "Command failed with ENOENT ... Executable not found in $PATH", which was on
+# no list. Decide from the declaration instead — it cannot go stale:
+#
+#   extension no server claims  -> the call cannot have succeeded, so explain
+#   extension claimed, binary present -> silent; the failure is something else
+#   extension claimed, binary absent  -> the call cannot have succeeded, so explain
+#
+# That is immune to how the harness happens to word an error.
 
 lsp="${CLAUDE_PLUGIN_ROOT:-}/.lsp.json"
 [ -f "$lsp" ] || exit 0

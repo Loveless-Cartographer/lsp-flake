@@ -99,8 +99,17 @@ else. Run `/lsp-doctor` to see which are missing and what to install; use
 `claude --debug` if you want the startup failure itself.
 
 There is **no install-time trigger** in the plugin system — no hook fires when a
-plugin is installed, so the plugin cannot run `nix profile add` for you. The two
-steps are genuinely separate: install the binaries, install the plugin.
+plugin is installed, and the manifest has no post-install message field, so the
+plugin cannot run `nix profile add` for you.
+
+What it does instead is check at **session start**. If every server is present it
+says nothing at all. If some are missing it tells the agent to offer the fix, and
+if Nix itself is absent it first has the agent explain what Nix is, how it differs
+from Docker, and why these servers need it — then offers both commands, without
+running either unasked.
+
+The check lives in `plugins/nix-lsps/hooks/check-lsp-servers.sh`; it needs only a
+shell, and uses `jq` for structured output when it is available.
 
 ### Extensions, including `.phtml`
 

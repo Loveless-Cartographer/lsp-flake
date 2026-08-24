@@ -48,9 +48,11 @@ if [ -z "$server" ]; then
 expected rather than a broken install. Servers it does cover:
 $(jq -r '[to_entries[] | .value.extensionToLanguage | keys[]] | sort | join(" ")' "$lsp" 2>/dev/null)
 
-To add one, put the extension in plugins/nix-lsps/.lsp.json under a server that can
-handle it — no two servers may claim the same extension. Tell the user this in one
-line; do not retry the same call."
+Adding one means editing this plugin's .lsp.json — but the installed copy lives in a
+read-only cache, so it has to be changed at the source and reinstalled:
+https://github.com/Tschallacka/lsp-flake/blob/main/plugins/nix-lsps/.lsp.json
+No two servers may claim the same extension. Tell the user this in one line; do not
+retry the same call."
 else
     binary="$(jq -r --arg s "$server" '.[$s].command' "$lsp" 2>/dev/null)"
     if command -v "$binary" >/dev/null 2>&1; then

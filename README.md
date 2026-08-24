@@ -1,7 +1,7 @@
 # lsp-flake
 
-Eleven language servers as a single Nix flake, plus a generator that wires them
-into [opencode](https://opencode.ai).
+Eleven language servers as a single Nix flake, wired into [opencode](https://opencode.ai)
+by a generator and into [Claude Code](#claude-code) by a plugin in this repo.
 
 One `nix profile add` gets you bash, eslint, Java, Kotlin, Nix, PHP, Python,
 Rust, TypeScript, Vue and YAML intelligence — and one `nix profile upgrade`
@@ -61,14 +61,78 @@ if any binary is missing. Set `BIN=` to point at somewhere other than
 To add a server: add the package to `paths` in `flake.nix`, add a row to the
 `servers` table in `gen-lsp-config.sh`, rebuild, rerun the generator.
 
+## Claude Code
+
+Claude Code has a built-in LSP layer, but no `settings.json` key for it — language
+servers are registered by **plugins**. This repo is a marketplace with one plugin,
+`nix-lsps`, declaring all ten servers at once.
+
+```sh
+claude plugin marketplace add Tschallacka/lsp-flake
+claude plugin install nix-lsps@lsp-flake
+```
+
+Restart Claude Code afterwards. `/lsp-doctor` then tells you which servers are
+actually present.
+
+### Requirements, and what happens without them
+
+The plugin declares servers; it cannot install them. Each `command` is a bare
+binary name resolved on `PATH`, so the binaries have to exist — which is what the
+flake above is for:
+
+```sh
+nix profile add github:Tschallacka/lsp-flake#lsps
+```
+
+If you do not have Nix, install it first — a single command, documented at
+<https://nixos.org/download/>:
+
+```sh
+sh <(curl -L https://nixos.org/nix/install) --daemon
+```
+
+**Missing binaries degrade quietly rather than breaking the session.** Servers
+start lazily, when a file of a matching extension is first opened, so a server
+whose binary is absent costs you intelligence for that one language and nothing
+else. Run `/lsp-doctor` to see which are missing and what to install; use
+`claude --debug` if you want the startup failure itself.
+
+There is **no install-time trigger** in the plugin system — no hook fires when a
+plugin is installed, so the plugin cannot run `nix profile add` for you. The two
+steps are genuinely separate: install the binaries, install the plugin.
+
+### Extensions, including `.phtml`
+
+Each server maps extensions to LSP language ids itself, so the mapping is
+editable in one place — `plugins/nix-lsps/.lsp.json`. This is the reason the
+plugin exists rather than using the official per-language ones: Anthropic's
+`php-lsp` maps `.php` only, which leaves Magento and WordPress templates dark.
+`nix-lsps` maps `.phtml`, `.module` and `.inc` to PHP as well, plus `.zsh`/`.ksh`
+to shell, `.mts`/`.cts` to TypeScript and `.pyw` to Python.
+
+To add your own, add the extension to that file — no two servers may claim the
+same extension.
+
+### Conflicts with the official LSP plugins
+
+The official marketplace ships `php-lsp`, `pyright-lsp`, `typescript-lsp`,
+`rust-analyzer-lsp`, `jdtls-lsp`, `kotlin-lsp` and more. `nix-lsps` **replaces**
+those — do not enable both for the same language. Two plugins declaring a server
+for one extension is a conflict, not a merge.
+
+`eslint` is deliberately absent: `vscode-eslint-language-server` wants the same
+`.js`/`.ts` extensions as `typescript-language-server`, and only one server may
+own an extension. It is in the flake, and configured for opencode, which has no
+such restriction.
+
 ### Editors other than opencode
 
 The flake is just binaries on `PATH`, so anything that discovers language
 servers there works. Only the generator is opencode-specific.
 
-Note that **Claude Code has no user-facing setting for language servers.** It
-has an internal LSP layer, but no config key to register these with, so
-installing them doesn't wire them into it.
+For Claude Code, see [Claude Code](#claude-code) above — it needs the plugin in
+this repo, not a config key.
 
 ## Why `allowUnfree` is in the flake
 

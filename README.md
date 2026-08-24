@@ -108,7 +108,7 @@ Nix itself is absent it adds the second command and a link, and keeps the "what 
 Nix, and why not a container" background one line long, to be expanded only if the
 user asks.
 
-It reports a given situation **once**. A stamp under
+It reports a given situation **once**, and only after the note was actually written out — a failed emission is retried at the next session start rather than suppressed forever. A stamp under
 `${XDG_STATE_HOME:-~/.local/state}/nix-lsps` records which servers were missing and
 whether Nix was present; an identical situation stays silent at every later session
 start, and the note returns only when that changes — a server disappears, or Nix

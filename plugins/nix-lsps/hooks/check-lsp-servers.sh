@@ -59,19 +59,26 @@ if [ -z "$preview" ]; then
     if [ -f "$state_dir/reported" ] && [ "$(cat "$state_dir/reported" 2>/dev/null)" = "$key" ]; then
         exit 0
     fi
-    mkdir -p "$state_dir" 2>/dev/null && printf '%s\n' "$key" > "$state_dir/reported" 2>/dev/null || true
 fi
 
 # SessionStart contract: additionalContext is injected into the session. jq is
 # not a dependency of this plugin, so fall back to plain stdout, which
 # SessionStart also accepts as context.
+emitted=0
 if command -v jq >/dev/null 2>&1; then
     printf '%s' "$note" | jq -Rs '{
         hookSpecificOutput: {
             hookEventName: "SessionStart",
             additionalContext: .
         }
-    }'
+    }' && emitted=1
 else
-    printf '%s\n' "$note"
+    printf '%s\n' "$note" && emitted=1
+fi
+
+# Only now that the note has actually been emitted is the situation "reported".
+# Stamping earlier would let a killed or timed-out hook suppress a note nobody
+# ever saw.
+if [ -z "$preview" ] && [ "$emitted" -eq 1 ]; then
+    mkdir -p "$state_dir" 2>/dev/null && printf '%s\n' "$key" > "$state_dir/reported" 2>/dev/null || true
 fi

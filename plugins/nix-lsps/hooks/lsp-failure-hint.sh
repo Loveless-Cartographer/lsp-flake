@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# PostToolUseFailure hook for the LSP tool. A bare "no server for this file"
-# says nothing about why, so this names the server that owns the extension,
-# whether its binary is actually installed, and the command that fixes it.
-# Silent whenever it has nothing useful to add.
+# PostToolUse (and PostToolUseFailure) hook for the LSP tool. A bare "No LSP
+# server available for file type .rb" says nothing about why, so this names the
+# server that owns the extension, whether its binary is actually installed, and
+# the command that fixes it. Silent whenever it has nothing useful to add.
+#
+# PostToolUse, not only PostToolUseFailure: the LSP tool RETURNS that message as
+# an ordinary result rather than throwing, so the failure event never fires for
+# it. Verified by a fresh session — the call produced the bare message and no
+# hook context at all. PostToolUseFailure stays declared for a genuine crash.
 set -u
 
 command -v jq >/dev/null 2>&1 || exit 0
@@ -10,6 +15,17 @@ command -v jq >/dev/null 2>&1 || exit 0
 payload="$(cat)"
 path="$(printf '%s' "$payload" | jq -r '.tool_input.filePath // empty' 2>/dev/null)"
 [ -n "$path" ] || exit 0
+
+# Say nothing about a call that worked. A response is present on PostToolUse and
+# absent on PostToolUseFailure; only a response that actually reports a missing
+# server is worth annotating.
+response="$(printf '%s' "$payload" | jq -r 'if has("tool_response") then (.tool_response | tostring) else "" end' 2>/dev/null)"
+if [ -n "$response" ]; then
+    case "$response" in
+        *"No LSP server available"*|*"Failed to start LSP"*|*"Failed to initialize LSP"*) ;;
+        *) exit 0 ;;
+    esac
+fi
 
 # Only the basename may carry the extension: a dot in a directory name
 # (/srv/v1.2/Makefile) must not read as one. Test for the dot before
@@ -54,9 +70,12 @@ Say this in one line, do not retry, and point at
 https://github.com/Tschallacka/lsp-flake/blob/main/LSP-SETUP.md for the detail."
 fi
 
-printf '%s' "$hint" | jq -Rs '{
+# Echo back whichever event actually invoked us; the field must match or the
+# output is rejected.
+event="$(printf '%s' "$payload" | jq -r '.hook_event_name // "PostToolUse"' 2>/dev/null)"
+printf '%s' "$hint" | jq -Rs --arg event "$event" '{
     hookSpecificOutput: {
-        hookEventName: "PostToolUseFailure",
+        hookEventName: $event,
         additionalContext: .
     }
 }'

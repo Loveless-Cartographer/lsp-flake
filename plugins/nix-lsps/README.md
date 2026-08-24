@@ -38,7 +38,7 @@ Run `/lsp-doctor` instead of waiting for it.
 
 ## When a call fails
 
-`PostToolUseFailure` on the `LSP` tool names the server that owns the extension, says
+A `PostToolUse` hook on the `LSP` tool names the server that owns the extension, says
 whether its binary is missing, and gives the install command — instead of a bare "no
 server for this file". Silent when the server is present, since the failure is then
 something else.

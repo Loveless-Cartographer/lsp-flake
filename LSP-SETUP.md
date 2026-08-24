@@ -1,11 +1,9 @@
-# Language server setup — opencode (and what's possible for Claude Code)
+# Language server setup
 
-Installs eleven language servers from one Nix flake and wires them into opencode:
-bash, eslint, jdtls, kotlin, nixd, intelephense (PHP), pyright, rust-analyzer,
-typescript, vue, yaml.
-
-Everything below was executed and verified on x86_64-linux before being written
-down. The two places where I could not verify are called out as such.
+The long form of the [README](README.md): installs eleven language servers from
+one Nix flake — bash, eslint, jdtls, kotlin, nixd, intelephense (PHP), pyright,
+rust-analyzer, typescript, vue, yaml — and wires them into opencode and Claude
+Code.
 
 ## 0. Prerequisites
 
@@ -129,9 +127,6 @@ binary is missing or the existing config is not valid JSON:
 
     BIN="$HOME/.nix-profile/bin" ./gen-lsp-config.sh
 
-Verified here against the built environment: `wrote 11 servers`, with
-`$schema` and `model` untouched.
-
 Check afterwards:
 
     jq -r '.lsp | to_entries[] | "\(.key): \(.value.command[0])"' ~/.config/opencode/opencode.json
@@ -144,20 +139,35 @@ six take `--stdio`.
 
 ## 4. Claude Code
 
-**There is no settings key for language servers.** Claude Code has an internal
-LSP layer — `--bare` skips it — but it is not user-configurable the way
-opencode's `lsp` block is, so the eleven servers cannot be registered with it
-the same way. Installing them still helps anything else on the box that
-discovers servers on PATH.
+Claude Code has an internal LSP layer (`--bare` skips it) but no `settings.json`
+key for it — language servers are registered by **plugins**. This repo is a
+marketplace holding one, `nix-lsps`, which declares ten of the eleven servers:
 
-I could not verify any supported mechanism for pointing Claude Code at these.
-Do not invent a config key for it; if this matters, confirm against current
-Claude Code docs rather than trusting this paragraph.
+    claude plugin marketplace add Tschallacka/lsp-flake
+    claude plugin install nix-lsps@lsp-flake
+
+Restart Claude Code afterwards, then run `/lsp-doctor` to see which binaries are
+actually present.
+
+The mapping lives in `plugins/nix-lsps/.lsp.json`, keyed by server name, each
+entry taking `command`, `args` and `extensionToLanguage`. `extensionToLanguage`
+is why the plugin exists: the official `php-lsp` maps `.php` only, where this one
+also maps `.phtml`, `.module` and `.inc`. No two servers may claim the same
+extension, which is why `eslint` is absent — it wants the same `.js`/`.ts` files
+as `typescript-language-server`.
+
+`nix-lsps` replaces the official per-language LSP plugins rather than
+supplementing them; do not enable both for one language.
+
+Nothing runs at install time — no hook fires when a plugin is installed, so the
+plugin cannot install the binaries. Servers start lazily when a matching file is
+first opened, so a missing binary costs intelligence for that one language and
+breaks nothing else.
 
 ## 5. Gotchas
 
-- **Version lag.** nixpkgs `intelephense` is 1.18.2 where npm/bun ship 1.18.5.
-  Patch-level, but if PHP intel regresses this is the first thing to check.
+- **Version lag.** nixpkgs `intelephense` runs behind the npm release. Patch-level,
+  but if PHP intel regresses this is the first thing to check.
 - **A rustup shim can shadow the flake.** If `~/.cargo/bin` precedes
   `~/.nix-profile/bin` on PATH, `rust-analyzer` may resolve to a rustup shim.
   With no matching toolchain component it falls back to the nix binary anyway,
@@ -167,17 +177,16 @@ Claude Code docs rather than trusting this paragraph.
   whichever comes first on PATH wins and it may not be the one in your config.
   Check with `command -v <binary>` and remove the loser
   (`bun remove -g <pkg>`, `npm rm -g <pkg>`, `cargo uninstall <pkg>`).
-- **Wrapper noise breaks LSP.** A bun-installed binary here printed
-  `Cannot detect the correct bin file ...` onto stdout, in-band with the
-  protocol. Any wrapper that writes to stdout will corrupt the stream — a
-  server that "connects but does nothing" is often this.
+- **Wrapper noise breaks LSP.** Some npm/bun installs wrap the binary in a shim
+  that prints to stdout, in-band with the protocol. Anything on stdout corrupts
+  the stream — a server that "connects but does nothing" is often this.
 - **eslint comes from `vscode-langservers-extracted`**, which also provides the
   json, html and css servers if you want them later.
 - **vue + typescript** are version-coupled; `vue-language-server` may need a
   matching `typescript-language-server`/`typescript`. If Vue files misbehave
   while plain TS is fine, suspect that pairing.
 - **jdtls** wants a per-workspace data directory and is slow on first index.
-- **Editing config by key name:** the PHP server's key here is `intelephense`,
+- **Editing config by key name:** opencode's PHP server key is `intelephense`,
   not `php`. Writing `.lsp.php.command` with jq silently creates a *new*,
   half-configured twelfth server instead of editing the existing one. After any
   jq edit, diff against the backup and re-count: `jq '.lsp|length'`.

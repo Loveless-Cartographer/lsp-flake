@@ -134,6 +134,13 @@ servers there works. Only the generator is opencode-specific.
 For Claude Code, see [Claude Code](#claude-code) above — it needs the plugin in
 this repo, not a config key.
 
+## More detail
+
+[`LSP-SETUP.md`](LSP-SETUP.md) is the long form — prerequisites, the flake in
+full, install and verification, the opencode and Claude Code wiring, and a
+gotchas list covering PATH shadowing, wrapper output corrupting the protocol
+stream, and the rustup shim that intercepts `rust-analyzer`.
+
 ## Caveats
 
 - Built and used on `x86_64-linux`. The flake declares `aarch64-linux`,

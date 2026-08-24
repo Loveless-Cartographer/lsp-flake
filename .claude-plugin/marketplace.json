@@ -2,13 +2,17 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "lsp-flake",
   "description": "Language servers installed as one Nix flake, wired into Claude Code as one plugin",
-  "owner": { "name": "Tschallacka" },
+  "owner": {
+    "name": "Tschallacka"
+  },
   "plugins": [
     {
       "name": "nix-lsps",
       "description": "Ten language servers (bash, PHP incl. .phtml, Java, Kotlin, Nix, Python, Rust, TypeScript, Vue, YAML) from the lsp-flake Nix flake",
-      "version": "1.0.0",
-      "author": { "name": "Tschallacka" },
+      "version": "1.1.0",
+      "author": {
+        "name": "Tschallacka"
+      },
       "source": "./plugins/nix-lsps",
       "category": "development",
       "strict": false

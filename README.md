@@ -121,6 +121,17 @@ The check is `plugins/nix-lsps/hooks/check-lsp-servers.sh`; it needs only a shel
 and uses `jq` for structured output when available. `NIX_LSPS_PREVIEW=missing` or
 `=no-nix` previews either note without uninstalling anything, bypassing the stamp.
 
+### When an LSP call fails
+
+A bare "no server for this file" explains nothing, so the plugin also hooks
+`PostToolUseFailure` on the `LSP` tool and turns the failure into a diagnosis: which
+server owns that extension, whether its binary is actually on `PATH`, and the command
+that fixes it. If the extension is one no server claims, it says that instead and
+lists what is covered — a different problem with a different fix.
+
+It stays silent when the server *is* installed, because then the failure is something
+else and an install story would send you down the wrong path.
+
 ### Extensions, including `.phtml`
 
 Each server maps extensions to LSP language ids itself, so the mapping is

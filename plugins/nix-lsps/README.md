@@ -36,6 +36,13 @@ A session-start check reports any missing servers, but only from the **next**
 session onward — it cannot warn during the session that installed the plugin.
 Run `/lsp-doctor` instead of waiting for it.
 
+## When a call fails
+
+`PostToolUseFailure` on the `LSP` tool names the server that owns the extension, says
+whether its binary is missing, and gives the install command — instead of a bare "no
+server for this file". Silent when the server is present, since the failure is then
+something else.
+
 ## Notes
 
 - `.phtml`, `.module` and `.inc` map to PHP. Anthropic's official `php-lsp` maps

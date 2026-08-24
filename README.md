@@ -75,6 +75,26 @@ claude plugin install nix-lsps@lsp-flake
 Restart Claude Code afterwards. `/lsp-doctor` then tells you which servers are
 actually present.
 
+### Verifying it works
+
+Ask Claude to use its `LSP` tool on a file. On a `.phtml` template holding a
+`Greeter` class, the three operations that matter all resolve through
+`intelephense`:
+
+| Operation | Result |
+| --- | --- |
+| `documentSymbol` | the real structure — `Greeter` (Class), `$name` (Property, private), `__construct` (Constructor), `greet` (Method) |
+| `hover` on a `greet()` call | `Greeter::greet`, `public function greet(): string`, `@return string` |
+| `goToDefinition` on the same call | the method declaration, `template.phtml:12:21` |
+
+Symbol kinds and PHP visibility come back correctly, so this is the language
+server parsing the file, not a text outline.
+
+One trap if you go looking for this yourself: **`claude -p` does not appear to
+start the LSP layer.** A non-interactive run reports no diagnostics and logs
+nothing LSP-related under `--debug`, even with the plugin installed and working.
+Test in an interactive session, or through the `LSP` tool directly.
+
 ### Requirements, and what happens without them
 
 The plugin declares servers; it cannot install them. Each `command` is a bare
@@ -169,6 +189,9 @@ intercepts `rust-analyzer`.
 - nixpkgs `intelephense` runs a little behind the npm release.
 - `nix profile upgrade lsps` moves all eleven together. Holding one server back
   means editing the flake.
+- Of the ten servers the plugin declares, only `intelephense` has been exercised
+  end to end in Claude Code. The other nine are declared the same way and start
+  the same way, but their intelligence is unverified here.
 
 ## License
 

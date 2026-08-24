@@ -1,7 +1,7 @@
 {
   "name": "nix-lsps",
   "description": "Ten language servers from the lsp-flake Nix flake, wired into Claude Code",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "Tschallacka"
   },

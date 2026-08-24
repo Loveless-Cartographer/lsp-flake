@@ -102,14 +102,22 @@ There is **no install-time trigger** in the plugin system — no hook fires when
 plugin is installed, and the manifest has no post-install message field, so the
 plugin cannot run `nix profile add` for you.
 
-What it does instead is check at **session start**. If every server is present it
-says nothing at all. If some are missing it tells the agent to offer the fix, and
-if Nix itself is absent it first has the agent explain what Nix is, how it differs
-from Docker, and why these servers need it — then offers both commands, without
-running either unasked.
+What it does instead is check at **session start**, and it leads with the fix rather
+than an explanation: the missing servers and the one command that installs them. If
+Nix itself is absent it adds the second command and a link, and keeps the "what is
+Nix, and why not a container" background one line long, to be expanded only if the
+user asks.
 
-The check lives in `plugins/nix-lsps/hooks/check-lsp-servers.sh`; it needs only a
-shell, and uses `jq` for structured output when it is available.
+It reports a given situation **once**. A stamp under
+`${XDG_STATE_HOME:-~/.local/state}/nix-lsps` records which servers were missing and
+whether Nix was present; an identical situation stays silent at every later session
+start, and the note returns only when that changes — a server disappears, or Nix
+arrives and the remaining step is the flake. Someone who has decided not to install
+anything is told once, not at every startup.
+
+The check is `plugins/nix-lsps/hooks/check-lsp-servers.sh`; it needs only a shell,
+and uses `jq` for structured output when available. `NIX_LSPS_PREVIEW=missing` or
+`=no-nix` previews either note without uninstalling anything, bypassing the stamp.
 
 ### Extensions, including `.phtml`
 

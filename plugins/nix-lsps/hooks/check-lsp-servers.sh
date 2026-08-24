@@ -28,28 +28,38 @@ done
 [ -z "$missing" ] && exit 0
 
 if [ "$preview" != "no-nix" ] && command -v nix >/dev/null 2>&1; then
-    note="The nix-lsps plugin is installed, but $((10 - present)) of its 10 language servers are not on PATH:$missing
+    note="nix-lsps: $((10 - present)) of 10 language servers are not on PATH:$missing
 
-Nix IS installed, so tell the user this and offer to run it for them:
+Tell the user, and offer to run this (do not run it unasked):
 
     nix profile add github:Tschallacka/lsp-flake#lsps
 
-That installs all eleven servers as one unit. Mention that a restart of Claude Code is needed afterwards. Do not run it without asking."
+Claude Code needs a restart afterwards."
 else
-    note="The nix-lsps plugin is installed, but none of its language servers can work: Nix itself is not on PATH, and the servers are distributed as a Nix flake.
+    note="nix-lsps: no language server can start. Nix is not on PATH, and the servers ship as a Nix flake.
 
-Explain this to the user, briefly:
+Tell the user, and offer these two steps (do not run either unasked):
 
-- Nix is a package manager. It installs each package into its own immutable directory and links what you asked for into your profile, so versions never collide and an install is exactly reproducible from a lockfile.
-- Compared with Docker: Docker isolates a whole running environment in a container, which is why the tools inside it are awkward to use as your own commands. Nix installs real binaries onto your PATH — an editor or Claude Code can execute them directly — while still pinning versions. No daemon, no container, no volume mounts.
-- Why it is needed here: these are eleven language servers from four ecosystems (npm, JDK, Rust, PHP). Installing them by hand means four package managers and eleven version pins. The flake makes them one dependency that installs, upgrades and removes together.
-
-Then offer the two steps, and do not run either without asking:
-
-    sh <(curl -L https://nixos.org/nix/install) --daemon
+    sh <(curl -L https://nixos.org/nix/install) --daemon    # needs sudo, asks its own questions — better run by hand
     nix profile add github:Tschallacka/lsp-flake#lsps
 
-The installer needs sudo and asks its own questions, so the user is better off running it themselves in a terminal; https://nixos.org/download/ documents it. Mention that Claude Code needs a restart afterwards."
+Claude Code needs a restart afterwards. Docs: https://nixos.org/download/
+
+Background, only if they ask: Nix is a package manager that installs each package into its own immutable directory and puts real binaries on PATH, pinned by a lockfile — unlike a container, there is no daemon or volume mount, so an editor can execute them directly. It is used here because these servers come from four ecosystems (npm, JDK, Rust, PHP), and the flake makes them one dependency."
+fi
+
+# Report a given situation once. The key covers Nix's presence and exactly which
+# servers are missing, so the note returns if that changes (a server removed, Nix
+# installed) but a user who has decided not to install anything is not nagged at
+# every session start. A preview always prints.
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/nix-lsps"
+key="$(command -v nix >/dev/null 2>&1 && printf 'nix'; printf '%s' "$missing")"
+key="$(printf '%s' "$key" | cksum)"
+if [ -z "$preview" ]; then
+    if [ -f "$state_dir/reported" ] && [ "$(cat "$state_dir/reported" 2>/dev/null)" = "$key" ]; then
+        exit 0
+    fi
+    mkdir -p "$state_dir" 2>/dev/null && printf '%s\n' "$key" > "$state_dir/reported" 2>/dev/null || true
 fi
 
 # SessionStart contract: additionalContext is injected into the session. jq is

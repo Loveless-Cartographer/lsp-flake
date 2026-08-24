@@ -15,7 +15,22 @@
       },
       "source": "./plugins/nix-lsps",
       "category": "development",
-      "strict": false
+      "strict": false,
+      "homepage": "https://github.com/Tschallacka/lsp-flake",
+      "repository": "https://github.com/Tschallacka/lsp-flake",
+      "license": "MIT",
+      "keywords": [
+        "lsp",
+        "language-server",
+        "nix",
+        "flake",
+        "php",
+        "phtml",
+        "intelephense",
+        "typescript",
+        "python",
+        "rust"
+      ]
     }
   ]
 }

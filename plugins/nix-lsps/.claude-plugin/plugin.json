@@ -9,10 +9,15 @@
   "license": "MIT",
   "keywords": [
     "lsp",
+    "language-server",
     "nix",
+    "flake",
     "php",
-    "python",
+    "phtml",
+    "intelephense",
     "typescript",
+    "python",
     "rust"
-  ]
+  ],
+  "repository": "https://github.com/Tschallacka/lsp-flake"
 }

@@ -1,5 +1,5 @@
 ---
-description: Check which of the nix-lsps language servers are actually installed
+description: Check which nix-lsps language servers are actually on PATH, and how to install the missing ones. Run this right after installing the nix-lsps plugin — the plugin declares servers but does not install them, so a fresh install usually has none.
 ---
 
 Run this exact script and report the result to the user:

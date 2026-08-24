@@ -103,7 +103,9 @@ plugin is installed, and the manifest has no post-install message field, so the
 plugin cannot run `nix profile add` for you.
 
 What it does instead is check at **session start**, and it leads with the fix rather
-than an explanation: the missing servers and the one command that installs them. If
+than an explanation: the missing servers and the one command that installs them. It
+also tells the agent to raise it in one line beside whatever the user actually asked
+for, so a session opened for other work is not derailed by a tooling pitch. If
 Nix itself is absent it adds the second command and a link, and keeps the "what is
 Nix, and why not a container" background one line long, to be expanded only if the
 user asks.

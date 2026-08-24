@@ -9,7 +9,7 @@
     {
       "name": "nix-lsps",
       "description": "Ten language servers (bash, PHP incl. .phtml, Java, Kotlin, Nix, Python, Rust, TypeScript, Vue, YAML) from the lsp-flake Nix flake",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "author": {
         "name": "Tschallacka"
       },

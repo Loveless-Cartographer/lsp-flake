@@ -30,7 +30,8 @@ done
 if [ "$preview" != "no-nix" ] && command -v nix >/dev/null 2>&1; then
     note="nix-lsps: $((10 - present)) of 10 language servers are not on PATH:$missing
 
-Tell the user, and offer to run this (do not run it unasked):
+Mention this in one line alongside whatever the user actually asked for — do not
+derail their task with it. Offer this, and do not run it unasked:
 
     nix profile add github:Tschallacka/lsp-flake#lsps
 
@@ -38,14 +39,16 @@ Claude Code needs a restart afterwards."
 else
     note="nix-lsps: no language server can start. Nix is not on PATH, and the servers ship as a Nix flake.
 
-Tell the user, and offer these two steps (do not run either unasked):
+Mention this in one line alongside whatever the user actually asked for — do not
+derail their task with it. Offer these two steps, and do not run either unasked:
 
     sh <(curl -L https://nixos.org/nix/install) --daemon    # needs sudo, asks its own questions — better run by hand
     nix profile add github:Tschallacka/lsp-flake#lsps
 
 Claude Code needs a restart afterwards. Docs: https://nixos.org/download/
 
-Background, only if they ask: Nix is a package manager that installs each package into its own immutable directory and puts real binaries on PATH, pinned by a lockfile — unlike a container, there is no daemon or volume mount, so an editor can execute them directly. It is used here because these servers come from four ecosystems (npm, JDK, Rust, PHP), and the flake makes them one dependency."
+Detail below is for if they take it up or ask; do not recite it otherwise.
+Background: Nix is a package manager that installs each package into its own immutable directory and puts real binaries on PATH, pinned by a lockfile — unlike a container, there is no daemon or volume mount, so an editor can execute them directly. It is used here because these servers come from four ecosystems (npm, JDK, Rust, PHP), and the flake makes them one dependency."
 fi
 
 # Report a given situation once. The key covers Nix's presence and exactly which

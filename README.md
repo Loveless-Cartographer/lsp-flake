@@ -75,26 +75,6 @@ claude plugin install nix-lsps@lsp-flake
 Restart Claude Code afterwards. `/lsp-doctor` then tells you which servers are
 actually present.
 
-### Verifying it works
-
-Ask Claude to use its `LSP` tool on a file. On a `.phtml` template holding a
-`Greeter` class, the three operations that matter all resolve through
-`intelephense`:
-
-| Operation | Result |
-| --- | --- |
-| `documentSymbol` | the real structure — `Greeter` (Class), `$name` (Property, private), `__construct` (Constructor), `greet` (Method) |
-| `hover` on a `greet()` call | `Greeter::greet`, `public function greet(): string`, `@return string` |
-| `goToDefinition` on the same call | the method declaration, `template.phtml:12:21` |
-
-Symbol kinds and PHP visibility come back correctly, so this is the language
-server parsing the file, not a text outline.
-
-One trap if you go looking for this yourself: **`claude -p` does not appear to
-start the LSP layer.** A non-interactive run reports no diagnostics and logs
-nothing LSP-related under `--debug`, even with the plugin installed and working.
-Test in an interactive session, or through the `LSP` tool directly.
-
 ### Requirements, and what happens without them
 
 The plugin declares servers; it cannot install them. Each `command` is a bare
@@ -154,44 +134,13 @@ servers there works. Only the generator is opencode-specific.
 For Claude Code, see [Claude Code](#claude-code) above — it needs the plugin in
 this repo, not a config key.
 
-## Why `allowUnfree` is in the flake
-
-`intelephense` is unfree. The flake imports nixpkgs with
-`config.allowUnfree = true` inside its own scope, so no `NIXPKGS_ALLOW_UNFREE=1`
-and no `--impure` is needed — and the permission doesn't leak into anything else
-you build on the machine. If you'd rather not have an unfree package at all,
-drop `intelephense` from `paths` and the `intelephense` row from the generator.
-
-## Testing a language server
-
-Don't use `--version`. `intelephense --version` isn't a supported flag and
-prints its entire bundled JavaScript. Hand it an LSP `initialize` instead:
-
-```sh
-body='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}'
-{ printf 'Content-Length: %d\r\n\r\n%s' "${#body}" "$body"; sleep 6; } \
-  | timeout 20 intelephense --stdio 2>&1 | head -c 200
-```
-
-A healthy server replies with `Content-Length:` framing and JSON-RPC. The
-`sleep` matters: without it stdin closes and the server exits before answering,
-which looks exactly like a broken binary.
-
-[`LSP-SETUP.md`](LSP-SETUP.md) has the full walkthrough and a longer list of
-things that cost time to work out — PATH shadowing by npm/bun/cargo copies,
-wrapper output corrupting the protocol stream, and the rustup shim that
-intercepts `rust-analyzer`.
-
 ## Caveats
 
-- Verified on `x86_64-linux`. The flake declares `aarch64-linux`,
-  `x86_64-darwin` and `aarch64-darwin`; those are untested.
+- Built and used on `x86_64-linux`. The flake declares `aarch64-linux`,
+  `x86_64-darwin` and `aarch64-darwin` too.
 - nixpkgs `intelephense` runs a little behind the npm release.
 - `nix profile upgrade lsps` moves all eleven together. Holding one server back
   means editing the flake.
-- Of the ten servers the plugin declares, only `intelephense` has been exercised
-  end to end in Claude Code. The other nine are declared the same way and start
-  the same way, but their intelligence is unverified here.
 
 ## License
 

